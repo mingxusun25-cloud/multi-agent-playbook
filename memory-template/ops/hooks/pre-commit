@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# 记忆库提交前检查：拦明文密钥。启用：git config core.hooksPath ops/hooks
+# 依赖：Git for Windows 自带的 bash、awk、grep（Windows 上 git 会用它跑钩子）
+# 也可手动跑：ops/hooks/pre-commit（检查暂存区）
+{ # 整个脚本包在花括号里：运行中改文件不会让正在跑的进程崩掉
+set -uo pipefail
+fail=0
+
+# 1. secrets/ 下除 README.md 外，只许提交 sops 加密过的 *.enc.env
+# git diff 成功后追加一个空记录，供循环确认列表完整读出。
+listed=0
+while IFS= read -r -d '' f; do
+  if [[ -z "$f" ]]; then
+    listed=1
+    break
+  fi
+  [[ "$f" == secrets/README.md ]] && continue
+  if [[ "$f" != secrets/*.enc.env ]]; then
+    echo "pre-commit：secrets/ 下只放 *.enc.env 密文，拒绝 ${f}。录 Key 用 secret set。" >&2; fail=1; continue
+  fi
+  if ! staged_content=$(git show ":$f"); then
+    echo "pre-commit：git show 读取暂存文件 ${f} 失败。" >&2
+    fail=1
+  elif ! grep -q '^sops_mac=' <<< "$staged_content"; then
+    echo "pre-commit：${f} 没有 sops 加密元数据，像是明文。用 secret set 或 sops 编辑后再提交。" >&2; fail=1
+  fi
+done < <(git diff --cached --name-only -z --diff-filter=ACMR -- secrets/ && printf '\0')
+if [[ "$listed" -eq 0 ]]; then
+  echo "pre-commit：git diff 读取 secrets/ 暂存文件列表失败。" >&2
+  fail=1
+fi
+
+# 2. 新增行里不许出现常见密钥格式（带点号的 sk-ws- 也算）
+pat='(sk-[A-Za-z0-9][A-Za-z0-9._-]{15,}|ark-[0-9a-f]{8}-[0-9a-f]{4}|AGE-SECRET-KEY-1[0-9A-Z]{20,}|AKIA[0-9A-Z]{16}|LTAI[0-9A-Za-z]{12,}|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|xox[abpr]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)'
+hits=""
+listed=0
+while IFS= read -r -d '' f; do
+  if [[ -z "$f" ]]; then
+    listed=1
+    break
+  fi
+  if ! staged_diff=$(git diff --cached -U0 -- "$f"); then
+    echo "pre-commit：git diff 读取 ${f} 的暂存差异失败。" >&2
+    fail=1
+    continue
+  fi
+  # 只扫描差异块中的新增行，跳过块外的 +++ 文件头。
+  # grep -cE 在零命中时输出 0，退出码为 1。
+  if ! n=$(awk '/^diff --git / { in_hunk = 0 } /^@@ / { in_hunk = 1 } in_hunk && /^\+/' <<< "$staged_diff" |
+           { grep -cE "$pat" || [[ $? -eq 1 ]]; }); then
+    echo "pre-commit：扫描 ${f} 的新增行失败。" >&2
+    fail=1
+    continue
+  fi
+  [[ "$n" -gt 0 ]] && hits+="${f}（${n} 处）"$'\n'
+done < <(git diff --cached --name-only -z --diff-filter=ACMR -- . ':(exclude)secrets/*.enc.env' && printf '\0')
+if [[ "$listed" -eq 0 ]]; then
+  echo "pre-commit：git diff 读取待扫描的暂存文件列表失败。" >&2
+  fail=1
+fi
+hits="${hits%$'\n'}"
+if [[ -n "$hits" ]]; then
+  echo "pre-commit：这些文件的新增行像是明文密钥（不显示内容）：" >&2
+  echo "$hits" | sed 's/^/  /' >&2
+  echo "删掉或换成 [REDACTED] 再提交；真要存的 Key 用 secret set 加密进 secrets/。" >&2
+  fail=1
+fi
+exit $fail
+exit $?; } # 花括号结束

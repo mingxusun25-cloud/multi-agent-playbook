@@ -1,0 +1,7 @@
+# 复制成 .sops.yaml，把下面两个占位换成你的 age 公钥（age-keygen 输出的 Public key）。
+creation_rules:
+  - path_regex: secrets/.*\.enc\.env$
+    key_groups:
+      - age:
+          - <本机公钥 age1...>  # 本机
+          - <恢复钥匙公钥 age1...>  # 离线恢复

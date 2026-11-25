@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>多模型协作与工程记忆架构 · 现场演示</title>
+<style>
+  :root {
+    --bg: #eef1f6;
+    --card: #ffffff;
+    --ink: #0f172a;
+    --ink-2: #334155;
+    --ink-3: #64748b;
+    --line: #dbe1ea;
+    --edge: #475569;
+    --hl: #4f46e5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: var(--bg); color: var(--ink);
+    display: grid; grid-template-rows: auto 1fr auto; height: 100vh; overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    display: flex; align-items: center; gap: 24px; padding: 14px 28px;
+    background: var(--card); border-bottom: 1px solid var(--line);
+  }
+  header h1 { font-size: 20px; font-weight: 700; letter-spacing: .5px; }
+  header h1 small { display: block; font-size: 12px; font-weight: 400; color: var(--ink-3); margin-top: 2px; letter-spacing: 0; }
+  .tabs { display: flex; gap: 6px; background: #f1f5f9; padding: 4px; border-radius: 10px; margin-left: auto; }
+  .tabs button {
+    border: 0; background: transparent; padding: 9px 18px; border-radius: 7px; cursor: pointer;
+    font: inherit; font-size: 15px; color: var(--ink-2); display: flex; align-items: center; gap: 8px;
+  }
+  .tabs button kbd {
+    font: 600 11px/1 ui-monospace, Menlo, Consolas, monospace; padding: 3px 6px; border-radius: 4px;
+    background: #e2e8f0; color: var(--ink-3);
+  }
+  .tabs button.on { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 1px 3px rgba(15,23,42,.12); }
+  .tabs button.on kbd { background: var(--hl); color: #fff; }
+
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; padding: 16px 20px; min-height: 0; }
+  .stage {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px; min-height: 0;
+    display: flex; align-items: center; justify-content: center; padding: 8px; position: relative;
+  }
+  .stage svg { width: 100%; height: 100%; display: none; }
+  .stage svg.on { display: block; }
+
+  /* SVG 元素 */
+  .lane-bg { stroke: none; transition: opacity .25s; }
+  .lane-name { font-size: 16px; font-weight: 700; }
+  .lane-sub { font-size: 12px; fill: var(--ink-3); }
+  .group-box { fill-opacity: .45; stroke-width: 1.5; stroke-dasharray: 6 5; transition: opacity .25s; }
+  .group-label { font-size: 14px; font-weight: 700; }
+  .group-hit { cursor: pointer; }
+  .node { cursor: pointer; transition: opacity .25s; outline: none; }
+  .node rect.body { stroke-width: 1.6; transition: stroke-width .2s, filter .2s; }
+  .node:hover rect.body, .node:focus rect.body { stroke-width: 2.6; }
+  .node .title { font-size: 17px; font-weight: 700; fill: var(--ink); }
+  .node .sub { font-size: 13.5px; fill: var(--ink-2); }
+  .node.sel rect.body { stroke-width: 3.2; filter: drop-shadow(0 6px 14px rgba(79,70,229,.28)); }
+  .edge { transition: opacity .25s; }
+  .edge path.base { fill: none; stroke: var(--edge); stroke-width: 1.8; stroke-linejoin: round; }
+  .edge.dashed path.base { stroke-dasharray: 7 5; stroke: #64748b; }
+  .edge.bold path.base { stroke-width: 2.8; stroke: #1e293b; }
+  .edge path.flow { fill: none; stroke: #fff; stroke-width: 2.2; stroke-dasharray: 2 16; stroke-linecap: round; opacity: 0; }
+  .edge text { font-size: 12.5px; fill: var(--ink-2); paint-order: stroke; stroke: #fff; stroke-width: 5px; stroke-linejoin: round; font-weight: 500; }
+  .edge.hl path.base { stroke: var(--hl); stroke-width: 3.2; }
+  .edge.hl path.flow { opacity: 1; animation: flow 1s linear infinite; }
+  .edge.hl text { fill: var(--hl); font-weight: 700; }
+  @keyframes flow { to { stroke-dashoffset: -18; } }
+  svg.focus .node:not(.rel), svg.focus .edge:not(.hl) { opacity: .16; }
+  svg.focus .group-box, svg.focus .lane-bg { opacity: .55; }
+
+  /* 讲解面板 */
+  aside {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px 22px 18px;
+    overflow-y: auto; display: flex; flex-direction: column; gap: 14px;
+  }
+  .p-kicker { font-size: 12px; font-weight: 600; letter-spacing: 1px; color: var(--ink-3); }
+  .p-title { font-size: 22px; font-weight: 700; line-height: 1.3; }
+  .p-lead { font-size: 15px; line-height: 1.7; color: var(--ink-2); }
+  .p-tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; margin-top: 6px; }
+  .p-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .p-list li { font-size: 15px; line-height: 1.6; color: var(--ink-2); padding-left: 16px; position: relative; }
+  .p-list li::before { content: ""; position: absolute; left: 0; top: .62em; width: 7px; height: 7px; border-radius: 2px; background: var(--dot, var(--hl)); }
+  .p-list li b { color: var(--ink); }
+  .p-rel h4 { font-size: 12px; color: var(--ink-3); font-weight: 600; letter-spacing: 1px; margin-bottom: 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips button {
+    font: inherit; font-size: 13px; border: 1px solid var(--line); background: #f8fafc; color: var(--ink-2);
+    padding: 5px 10px; border-radius: 7px; cursor: pointer; text-align: left;
+  }
+  .chips button:hover { border-color: var(--hl); color: var(--hl); }
+  .chips button i { font-style: normal; color: var(--ink-3); margin-right: 4px; }
+  .p-foot { margin-top: auto; font-size: 12.5px; color: var(--ink-3); line-height: 1.7; border-top: 1px dashed var(--line); padding-top: 12px; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .92em; background: #f1f5f9; padding: 1px 5px; border-radius: 4px; }
+
+  footer {
+    display: flex; align-items: center; gap: 26px; padding: 10px 28px 14px; font-size: 13px; color: var(--ink-3);
+  }
+  footer .lg { display: flex; align-items: center; gap: 8px; }
+  footer .keys { margin-left: auto; }
+  footer kbd { font: 600 11px/1 ui-monospace, Menlo, Consolas, monospace; padding: 3px 6px; border-radius: 4px; background: #e2e8f0; color: var(--ink-2); }
+</style>
+</head>
+<body>
+<header>
+  <h1>多模型协作与工程记忆架构<small>单台 Windows · 现场讲解版</small></h1>
+  <nav class="tabs" role="tablist">
+    <button data-view="v1" class="on" role="tab"><kbd>1</kbd>多模型协作架构</button>
+    <button data-view="v2" role="tab"><kbd>2</kbd>工程记忆架构</button>
+  </nav>
+</header>
+
+<main>
+  <section class="stage" id="stage"></section>
+  <aside id="panel"></aside>
+</main>
+
+<footer>
+  <span class="lg"><svg width="44" height="10"><line x1="2" y1="5" x2="34" y2="5" stroke="#1e293b" stroke-width="2.8"/><path d="M34 1 L42 5 L34 9 Z" fill="#1e293b"/></svg>主流程 / 强制经过</span>
+  <span class="lg"><svg width="44" height="10"><line x1="2" y1="5" x2="34" y2="5" stroke="#475569" stroke-width="1.8"/><path d="M34 1.5 L41 5 L34 8.5 Z" fill="#475569"/></svg>派活 / 写入</span>
+  <span class="lg"><svg width="44" height="10"><line x1="2" y1="5" x2="34" y2="5" stroke="#64748b" stroke-width="1.8" stroke-dasharray="6 4"/><path d="M34 1.5 L41 5 L34 8.5 Z" fill="#64748b"/></svg>回执 / 按需读取 / 注入</span>
+  <span class="keys"><kbd>1</kbd> <kbd>2</kbd> 切换视图 · 点节点高亮关联 · <kbd>←</kbd> <kbd>→</kbd> 逐个讲解 · <kbd>Esc</kbd> 复位</span>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+  var NS = 'http://www.w3.org/2000/svg';
+
+  var PALETTE = {
+    slate:   { fill: '#f8fafc', stroke: '#334155', tint: '#f1f5f9', ink: '#334155' },
+    indigo:  { fill: '#eef2ff', stroke: '#4f46e5', tint: '#f5f6ff', ink: '#4338ca' },
+    emerald: { fill: '#ecfdf5', stroke: '#059669', tint: '#f3fcf8', ink: '#047857' },
+    rose:    { fill: '#fff1f2', stroke: '#e11d48', tint: '#fff7f8', ink: '#be123c' },
+    sky:     { fill: '#f0f9ff', stroke: '#0284c7', tint: '#f4faff', ink: '#0369a1' },
+    amber:   { fill: '#fffbeb', stroke: '#d97706', tint: '#fffcf3', ink: '#b45309' },
+    orange:  { fill: '#fff7ed', stroke: '#ea580c', tint: '#fffaf5', ink: '#c2410c' },
+    violet:  { fill: '#f5f3ff', stroke: '#7c3aed', tint: '#faf8ff', ink: '#6d28d9' }
+  };
+
+  /* ================= 视图 1：多模型协作 ================= */
+  var V1 = {
+    id: 'v1', name: '多模型协作架构', w: 1400, h: 860,
+    lanes: [
+      { y: 18,  h: 104, c: 'slate',   name: '决策', sub: '人' },
+      { y: 134, h: 172, c: 'indigo',  name: '主控层', sub: '双主控热切换' },
+      { y: 318, h: 184, c: 'emerald', name: '调度层', sub: 'agent-kit' },
+      { y: 514, h: 166, c: 'rose',    name: '护栏 · 凭据', sub: '机械硬拦' },
+      { y: 692, h: 154, c: 'sky',     name: '代码 · 资料 · 记忆', sub: '各放各处' }
+    ],
+    groups: [
+      { id: 'orch', x: 180, y: 150, w: 1080, h: 142, c: 'indigo', title: '主控层（Claude ⇄ Gemini）',
+        tag: '双主控 · 可热切换', points: [
+          '两家额度池<b>相互独立</b>，一家紧张就换另一家当主控。',
+          '切换前落一份约 30～40 行的<b>交接单</b>：目标、已拍板决定、已验证 / 未验证、活跃 worker。',
+          '主控负责<b>派活和验收</b>：所有 worker 的结论都要主控读 diff、亲自核实。'] },
+      { id: 'kit', hidden: true, c: 'emerald', title: '调度层 · agent-kit', tag: '统一调度', points: [
+          '三个派活脚本和规则的源文件统一放在一个仓库，用 install.ps1 同步到各工具目录。',
+          '每个派活任务单独后台运行，结束自动通知主控，不靠轮询。'] }
+    ],
+    nodes: [
+      { id: 'human', x: 540, y: 34, w: 320, h: 74, c: 'slate', title: '👤 人 · 负责人',
+        sub: ['需求定义 · 方案拍板 · 推送终审'], tag: '决策者', points: [
+          '只做三件事：<b>提需求、拍板、终审</b>公开和推送。',
+          '两份方案有分歧、都有道理时，原样摆出来由人拍板。',
+          '删除、对外发消息、付款等不可逆操作必须本人确认。'] },
+      { id: 'claude', group: 'orch', x: 220, y: 172, w: 380, h: 108, c: 'indigo', title: 'Claude Code · 主控',
+        sub: ['架构拆解 · 定接口与验收标准', '前端视觉 · 合并验收 · 提交发布'], tag: '主控', points: [
+          '听懂需求、拆解、<b>定接口和验收标准</b>。',
+          '前端和视觉自己做；成块体力活派出去，<b>额度留给理解和验收</b>。',
+          '读回 diff 自己核实，不照抄 worker 结论；<b>提交推送只由主控做</b>。'] },
+      { id: 'gemini', group: 'orch', x: 840, y: 172, w: 380, h: 108, c: 'indigo', title: 'Antigravity / Gemini · 备用主控',
+        sub: ['讨论稿 · 脑暴 · 文案交互', '额度紧张时读交接单接棒'], tag: '备用主控', points: [
+          '日常负责讨论稿、脑暴、文案和交互打磨。',
+          '接棒时先读交接单，<b>核对时间和最新提交号</b>再继续，防止过期交接误导。',
+          '接手完成后覆盖或清空交接单。'] },
+      { id: 'agy', group: 'kit', x: 240, y: 365, w: 280, h: 120, c: 'emerald', title: 'agy-ask · 只读顾问',
+        sub: ['Gemini 独立出一份方案', '--copy 改文案与交互'], tag: '独立军师', points: [
+          '大方案（改设备通信、改数据存储、超一天的结构改动）<b>两家各出一份</b>。',
+          '只给它用户原话和必要背景，<b>不给主控草稿</b>，避免被带偏。',
+          '合并时有分歧以代码和实测为准，它标「推测」的先核实。'] },
+      { id: 'grok', group: 'kit', x: 560, y: 365, w: 280, h: 120, c: 'emerald', title: 'grok-ask · 只读反方',
+        sub: ['专挑高危方案漏洞', '附推翻实验'], tag: '反方', points: [
+          '只在<b>三类高危方案</b>上出场：硬件通信或烧录、可能丢数据或泄露凭据、高风险的用户承诺。',
+          '给出<b>最多 3 条漏洞 + 推翻实验</b>。',
+          '实验要么跑，要么写明不跑的理由。'] },
+      { id: 'codex', group: 'kit', x: 880, y: 365, w: 380, h: 120, c: 'emerald', title: 'codex-worker · 主力执行',
+        sub: ['--code 写代码 · --review 审高危 diff', '--net 多来源调研'], tag: '主力执行', points: [
+          '<b>--code</b>：接口已定的成块后端、算法、数据处理。',
+          '<b>--review</b>：合并前只审高危 diff，只挡说得出怎么出事的问题，最多两轮。',
+          '<b>--net</b> 多来源调研，只在临时目录里写。',
+          '装依赖、联网、提交推送仍由主控做。'] },
+      { id: 'hooks', x: 180, y: 540, w: 440, h: 115, c: 'rose', title: '机械护栏（钩子）',
+        sub: ['bg-guard 拦裸后台 · secret-guard 拦泄密', 'pre-commit 拦明文密钥进记忆库'], tag: '硬拦截', points: [
+          '<b>能写成检查的，绝不只写进提示词</b>。',
+          'bg-guard：拦 nohup / 结尾 & 这类丢了就没人管的后台命令。',
+          'secret-guard：拦直接解密、读私钥、全量打印环境变量；pre-commit：拦明文密钥提交进记忆库。'] },
+      { id: 'cross', x: 760, y: 540, w: 500, h: 115, c: 'rose', title: '凭据注入 · secret',
+        sub: ['sops + age 加密存放', 'secret run 按名注入 · 输出自动 [REDACTED]'], tag: '凭据', points: [
+          'Key 只录一次：<b>只能本人</b>在自己终端用 secret set 录入，自动加密提交。',
+          'Agent 用 Key 但<b>看不到 Key</b>，缺 Key 时请人去补。',
+          'secret run 只注入点名的凭据，输出里的原文自动替换为 [REDACTED]。'] },
+      { id: 'git', x: 180, y: 720, w: 340, h: 110, c: 'sky', title: '代码轨 · Git',
+        sub: ['日常开发 · 并行会话各开 worktree', '提交推送只由主控做'], tag: '代码', points: [
+          '代码<b>只经 Git</b> 管理。',
+          '同一仓库多个会话写代码时各开 worktree，主 checkout 只做合并。',
+          '公开发布前由人确认。'] },
+      { id: 'light', x: 560, y: 720, w: 340, h: 110, c: 'sky', title: '资料目录',
+        sub: ['讨论稿 · 截图 · 交付件', '不放进代码仓库根目录'], tag: '资料', points: [
+          '讨论稿、截图、交付件统一放一个资料目录。',
+          '<b>不放凭据</b>；一次性临时文件放 %TEMP%。',
+          '仓库根目录不放非代码产物。'] },
+      { id: 'heavy', x: 940, y: 720, w: 320, h: 110, c: 'sky', title: '记忆库 · agent-memory',
+        sub: ['Git 私有仓 · 见视图 2', '夜间整理唯一写入'], tag: '记忆', points: [
+          '工程记忆单独放一个<b>私有</b> Git 仓库。',
+          '日常只读主库、只写 inbox，夜间任务统一整理。'] }
+    ],
+    edges: [
+      { from: 'human', to: 'orch', kind: 'bold', pts: [[700,108],[700,150]], label: '需求 / 拍板', lx: 712, ly: 134, anchor: 'start' },
+      { from: 'claude', to: 'gemini', kind: 'bold', both: true, pts: [[600,226],[840,226]], label: '写交接单 / 接棒', lx: 720, ly: 214 },
+      { from: 'orch', to: 'agy', pts: [[330,292],[330,365]], label: '派活', lx: 338, ly: 334, anchor: 'start' },
+      { from: 'agy', to: 'orch', kind: 'dashed', pts: [[440,365],[440,292]], label: '方案 / 文案', lx: 448, ly: 334, anchor: 'start' },
+      { from: 'orch', to: 'grok', pts: [[650,292],[650,365]], label: '派活', lx: 658, ly: 334, anchor: 'start' },
+      { from: 'grok', to: 'orch', kind: 'dashed', pts: [[750,365],[750,292]], label: '≤3 漏洞 + 实验', lx: 758, ly: 334, anchor: 'start' },
+      { from: 'orch', to: 'codex', pts: [[990,292],[990,365]], label: '派活', lx: 998, ly: 334, anchor: 'start' },
+      { from: 'codex', to: 'orch', kind: 'dashed', pts: [[1130,365],[1130,292]], label: '改动 + 实测回执', lx: 1138, ly: 334, anchor: 'start' },
+      { from: 'orch', to: 'hooks', kind: 'bold', pts: [[200,292],[200,540]], label: '全程经钩子', lx: 188, ly: 420, rotate: true },
+      { from: 'codex', to: 'cross', pts: [[1070,485],[1070,540]], label: '用 Key 时', lx: 1078, ly: 517, anchor: 'start' },
+      { from: 'hooks', to: 'git', kind: 'bold', pts: [[300,655],[300,720]], label: '提交 / 推送', lx: 308, ly: 692, anchor: 'start' }
+    ],
+    overview: {
+      kicker: '视图 1 / 2', title: '多模型协作架构',
+      lead: '把模型当成偏科的团队成员分工，用脚手架和机械护栏控质量、控安全。',
+      points: [
+        '<b>按模型性格分工</b>：Claude 拆解、审美与验收；Gemini 当独立军师和文案顾问；Codex 承接成块执行；Grok 只在高危方案上当反方。',
+        '<b>双主控热切换</b>：两家额度独立，靠一份短交接单接棒，不丢上下文。',
+        '<b>机械护栏替代口头提醒</b>：防野后台、防泄密、防明文密钥入库。',
+        '<b>代码、资料、记忆分开放</b>：代码只走 Git，资料放资料目录，记忆进单独的私有仓。'
+      ]
+    }
+  };
+
+  /* ================= 视图 2：工程记忆 ================= */
+  var V2 = {
+    id: 'v2', name: '工程记忆架构', w: 1400, h: 860,
+    lanes: [],
+    groups: [
+      { id: 'g-switch', x: 30, y: 150, w: 250, h: 200, c: 'amber', title: '① 按项目开关', label: '① 按项目开关', lpos: 'top',
+        tag: '默认关闭', points: ['未声明记忆模式的项目<b>一律不读</b>，避免无关背景干扰。'] },
+      { id: 'g-daily', x: 330, y: 110, w: 300, h: 560, c: 'indigo', title: '② 日常会话', label: '② 日常会话 · 多 Agent', lpos: 'top',
+        tag: '多 Agent', points: ['日常会话<b>只读主库、只写暂存</b>，从结构上消灭并发写冲突。'] },
+      { id: 'g-store', x: 690, y: 80, w: 680, h: 250, c: 'emerald', title: '⑤ agent-memory 主库', label: '⑤ 主库 agent-memory（日常只读）', lpos: 'top',
+        tag: '只读', points: ['主库是 Git 私有仓；日常 Agent 只读，<b>唯一写入者是夜间任务</b>。'] },
+      { id: 'g-stage', x: 690, y: 410, w: 330, h: 300, c: 'orange', title: '③ 暂存层', label: '③ 暂存层（日常可写）', lpos: 'top',
+        tag: '可写缓冲区', points: ['所有日常写入都先落到暂存层，等夜间统一消化。'] },
+      { id: 'g-night', x: 1070, y: 410, w: 300, h: 300, c: 'violet', title: '④ 夜间整理', label: '④ 夜间整理（唯一写入者）', lpos: 'bottom',
+        tag: '定时任务', points: ['每晚定时运行，是主库的<b>唯一写入者</b>。'] },
+      { id: 'g-secret', x: 330, y: 740, w: 1040, h: 100, c: 'rose', title: '⑥ 凭据隔离', label: '⑥ 凭据隔离', lpos: 'left',
+        tag: '不进记忆正文', points: ['凭据和记忆完全分开存放，记忆正文里<b>永远没有明文凭据</b>。'] }
+    ],
+    nodes: [
+      { id: 'cfg', group: 'g-switch', x: 50, y: 192, w: 210, h: 130, c: 'amber', title: '项目根本机文件',
+        sub: ['不入库 · 本机声明', 'Memory: off（默认）', 'Memory: facts'], tag: '开关', points: [
+          '默认 <code>Memory: off</code>：<b>不读也不写</b>记忆库。',
+          '声明 <code>Memory: facts</code> 才在开工时读取。',
+          '开关文件<b>不入库</b>，团队仓库不受影响；口头「关记忆」可单次覆盖。'] },
+      { id: 'read', group: 'g-daily', x: 350, y: 160, w: 260, h: 140, c: 'indigo', title: '开工 · 按需读',
+        sub: ['先读总索引', '再下钻 STATUS / wiki', '以代码和实测为准'], tag: '读', points: [
+          '先只读 ≤80 行的<b>总索引</b>，极省上下文。',
+          '需要时再下钻某个项目的 STATUS 或 wiki 词条。',
+          '记忆和代码对不上时，<b>以代码和实测为准</b>。'] },
+      { id: 'write', group: 'g-daily', x: 350, y: 470, w: 260, h: 150, c: 'indigo', title: '收工 · 只追加',
+        sub: ['已核实结论写入 inbox', '不直接改主库与 wiki', 'worker 只在回执附候选'], tag: '写', points: [
+          '收工只把<b>已核实结论、踩坑、wiki 纠错</b>追加到 inbox。',
+          '<b>绝不直接改</b>总索引、项目状态和 wiki。',
+          '派出去的 worker 不写记忆，只在回执里附候选，由主控决定。'] },
+      { id: 'inbox', group: 'g-stage', x: 710, y: 455, w: 290, h: 115, c: 'orange', title: 'inbox/',
+        sub: ['日期.md · 只追加', '结论 · 踩坑 · 纠错候选'], tag: '暂存', points: [
+          '按<b>日期</b>分文件，各会话只追加 → 合并不冲突。',
+          '只追加，不改写。'] },
+      { id: 'handoff', group: 'g-stage', x: 710, y: 590, w: 290, h: 100, c: 'orange', title: 'HANDOFF.md',
+        sub: ['会话间任务交接'], tag: '交接', points: [
+          '每个项目一份，记录进行中的任务。',
+          '新开会话先读它，接上上一次的进度。'] },
+      { id: 'night', group: 'g-night', x: 1090, y: 450, w: 260, h: 210, c: 'violet', title: '夜间蒸馏任务',
+        sub: ['采集 Codex / Claude / Antigravity 会话', '+ inbox 暂存', '去重账本防重复合并', '核对后写入主库'], tag: '唯一写入者', points: [
+          '每晚由 Windows 计划任务触发，采集各工具的会话记录和 inbox。',
+          '用<b>去重账本</b>记录已消化的内容，防止同一条反复合并。',
+          '<b>每页单一写入者</b>：主库只有它在写，彻底消灭并发冲突和垃圾堆积。'] },
+      { id: 'index', group: 'g-store', x: 710, y: 125, w: 200, h: 175, c: 'emerald', title: 'MEMORY.md',
+        sub: ['总索引 ≤ 80 行', '活跃项目', 'wiki 导航', '近 7 天变化'], tag: '总索引', points: [
+          '<b>严格 ≤ 80 行</b>，开工必读，成本固定。',
+          '内容只有导航：活跃项目、wiki 目录、近 7 天变化。'] },
+      { id: 'status', group: 'g-store', x: 930, y: 125, w: 200, h: 175, c: 'emerald', title: 'STATUS.md',
+        sub: ['每个项目一份', '最新进展', '评审待办'], tag: '项目状态', points: [
+          '每个活跃项目一份，记录最新进展和待评审事项。',
+          '只在做这个项目时按需读取。'] },
+      { id: 'wiki', group: 'g-store', x: 1150, y: 125, w: 200, h: 175, c: 'emerald', title: 'wiki 知识库',
+        sub: ['长期工程知识', '标「已核 / 未核」', '附出处'], tag: '长期知识', points: [
+          '每条结论标注<b>「已核 / 未核」</b>。',
+          '附原始出处：提交号、日志或会话 ID。',
+          '避免旧推测被后来的会话当成既定事实。'] },
+      { id: 'enc', group: 'g-secret', x: 640, y: 754, w: 600, h: 72, c: 'rose', title: '加密凭据（sops + age）',
+        sub: ['只经 secret run 按名注入 · 输出自动 [REDACTED] · 不进记忆正文'], tag: '凭据', points: [
+          '凭据加密存放，<b>只通过 secret run 按名字注入</b>到单条命令。',
+          '命令输出里出现的原文自动替换成 [REDACTED]。',
+          'Agent 不直接解密、不打印环境变量；缺凭据时由人在自己终端补。'] }
+    ],
+    edges: [
+      { from: 'cfg', to: 'read', kind: 'bold', pts: [[260,230],[350,230]], label: 'facts 才读', lx: 305, ly: 220 },
+      { from: 'index', to: 'read', kind: 'bold', pts: [[710,200],[610,200]], label: '先读索引', lx: 660, ly: 190 },
+      { from: 'status', to: 'read', kind: 'dashed', pts: [[1030,125],[1030,50],[585,50],[585,160]] },
+      { from: 'wiki', to: 'read', kind: 'dashed', pts: [[1250,125],[1250,30],[565,30],[565,160]], label: '按需下钻 STATUS / wiki', lx: 800, ly: 22 },
+      { from: 'write', to: 'inbox', kind: 'bold', pts: [[610,512],[710,512]], label: '只追加', lx: 660, ly: 502 },
+      { from: 'write', to: 'handoff', pts: [[610,590],[660,590],[660,640],[710,640]] },
+      { from: 'inbox', to: 'night', kind: 'bold', pts: [[1000,512],[1090,512]], label: '每晚汇总', lx: 1045, ly: 502 },
+      { from: 'night', to: 'index', pts: [[1120,450],[1120,380],[810,380],[810,300]] },
+      { from: 'night', to: 'status', pts: [[1175,450],[1175,360],[1030,360],[1030,300]] },
+      { from: 'night', to: 'wiki', kind: 'bold', pts: [[1250,450],[1250,300]], label: '去重 · 核对 · 写入', lx: 1258, ly: 382, anchor: 'start' },
+      { from: 'enc', to: 'g-daily', kind: 'dashed', pts: [[640,790],[480,790],[480,670]], label: '注入 · 输出脱敏', lx: 488, ly: 712, anchor: 'start' }
+    ],
+    overview: {
+      kicker: '视图 2 / 2', title: '工程记忆架构',
+      lead: '读写分离的轻量 Git 仓库做跨会话记忆：日常只读主库、只写暂存，夜间统一蒸馏。',
+      points: [
+        '<b>默认关闭、按需加载</b>：项目声明后才读；先读 ≤80 行总索引，再按需下钻。',
+        '<b>每页单一写入者</b>：日常只追加 inbox，主库只由夜间任务写，消灭并发写冲突。',
+        '<b>证据与溯源</b>：wiki 每条标「已核 / 未核」和出处，旧推测不会变成既定事实。',
+        '<b>严格边界</b>：凭据加密隔离，永不进记忆正文；禁读目录和原始笔记库不自动扫描。'
+      ]
+    }
+  };
+
+  /* ================= 渲染 ================= */
+  function mk(tag, attrs, parent, text) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) if (Object.prototype.hasOwnProperty.call(attrs, k)) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  // 带圆角拐点的正交折线
+  function pathD(pts) {
+    var r = 10, d = 'M' + pts[0][0] + ' ' + pts[0][1];
+    for (var i = 1; i < pts.length; i++) {
+      var p = pts[i];
+      if (i < pts.length - 1) {
+        var a = pts[i - 1], n = pts[i + 1];
+        var l1 = Math.hypot(p[0] - a[0], p[1] - a[1]), l2 = Math.hypot(n[0] - p[0], n[1] - p[1]);
+        var rr = Math.min(r, l1 / 2, l2 / 2);
+        var x1 = p[0] - (p[0] - a[0]) / l1 * rr, y1 = p[1] - (p[1] - a[1]) / l1 * rr;
+        var x2 = p[0] + (n[0] - p[0]) / l2 * rr, y2 = p[1] + (n[1] - p[1]) / l2 * rr;
+        d += ' L' + x1 + ' ' + y1 + ' Q' + p[0] + ' ' + p[1] + ' ' + x2 + ' ' + y2;
+      } else {
+        d += ' L' + p[0] + ' ' + p[1];
+      }
+    }
+    return d;
+  }
+
+  function addMarkers(defs, vid) {
+    [['n', '#475569'], ['b', '#1e293b'], ['d', '#64748b'], ['h', '#4f46e5']].forEach(function (m) {
+      var mm = mk('marker', { id: vid + '-' + m[0], viewBox: '0 0 10 10', refX: '9', refY: '5',
+        markerWidth: '13', markerHeight: '13', markerUnits: 'userSpaceOnUse', orient: 'auto-start-reverse' }, defs);
+      mk('path', { d: 'M0 0 L10 5 L0 10 Z', fill: m[1] }, mm);
+    });
+  }
+
+  function render(V) {
+    var svg = mk('svg', { viewBox: '0 0 ' + V.w + ' ' + V.h, preserveAspectRatio: 'xMidYMid meet', id: V.id,
+      role: 'img', 'aria-label': V.name });
+    var defs = mk('defs', {}, svg);
+    addMarkers(defs, V.id);
+    var bg = mk('rect', { x: 0, y: 0, width: V.w, height: V.h, fill: 'transparent' }, svg);
+    bg.addEventListener('click', function () { select(null); });
+
+    // 泳道
+    V.lanes.forEach(function (L) {
+      var P = PALETTE[L.c];
+      var lane = mk('rect', { class: 'lane-bg', x: 16, y: L.y, width: V.w - 32, height: L.h, rx: 12, fill: P.tint }, svg);
+      lane.addEventListener('click', function () { select(null); });
+      mk('rect', { x: 16, y: L.y, width: 6, height: L.h, rx: 3, fill: P.stroke }, svg);
+      mk('text', { class: 'lane-name', x: 38, y: L.y + 34, fill: P.ink }, svg, L.name);
+      mk('text', { class: 'lane-sub', x: 38, y: L.y + 54 }, svg, L.sub);
+    });
+
+    // 分组框
+    V.groups.forEach(function (G) {
+      if (G.hidden) return;
+      var P = PALETTE[G.c];
+      var g = mk('g', { 'data-group': G.id }, svg);
+      var box = mk('rect', { class: 'group-box group-hit', x: G.x, y: G.y, width: G.w, height: G.h, rx: 14,
+        fill: P.tint, stroke: P.stroke }, g);
+      box.addEventListener('click', function (ev) { ev.stopPropagation(); select(G.id); });
+      if (G.label) {
+        var lx = G.x + 16, ly = G.lpos === 'bottom' ? G.y + G.h - 16 : G.y + 28;
+        if (G.lpos === 'left') ly = G.y + G.h / 2 + 5;
+        var t = mk('text', { class: 'group-label group-hit', x: lx, y: ly, fill: P.ink }, g, G.label);
+        t.addEventListener('click', function (ev) { ev.stopPropagation(); select(G.id); });
+      }
+    });
+
+    // 连线（画在节点下方）
+    var edgeLayer = mk('g', {}, svg);
+    V.edges.forEach(function (E) {
+      var g = mk('g', { class: 'edge ' + (E.kind || '') }, edgeLayer);
+      var d = pathD(E.pts);
+      E._mkey = E.kind === 'bold' ? 'b' : E.kind === 'dashed' ? 'd' : 'n';
+      E._base = mk('path', { class: 'base', d: d }, g);
+      mk('path', { class: 'flow', d: d }, g);
+      if (E.label) {
+        var ta = { x: E.lx, y: E.ly, 'text-anchor': E.anchor || 'middle' };
+        if (E.rotate) { ta['text-anchor'] = 'middle'; ta.transform = 'rotate(-90 ' + E.lx + ' ' + E.ly + ')'; }
+        mk('text', ta, g, E.label);
+      }
+      E._g = g;
+      setMarker(V, E, E._mkey);
+    });
+
+    // 节点
+    V.nodes.forEach(function (N) {
+      var P = PALETTE[N.c];
+      var g = mk('g', { class: 'node', 'data-id': N.id, tabindex: '0' }, svg);
+      mk('rect', { class: 'body', x: N.x, y: N.y, width: N.w, height: N.h, rx: 12, fill: P.fill, stroke: P.stroke }, g);
+      mk('rect', { x: N.x + 1, y: N.y + 14, width: 5, height: N.h - 28, rx: 2.5, fill: P.stroke }, g);
+      var single = N.h < 90;
+      mk('text', { class: 'title', x: N.x + 20, y: N.y + (single ? 30 : 32) }, g, N.title);
+      (N.sub || []).forEach(function (s, k) {
+        mk('text', { class: 'sub', x: N.x + 20, y: N.y + (single ? 54 : 58) + k * 22 }, g, s);
+      });
+      g.addEventListener('click', function (ev) { ev.stopPropagation(); select(N.id); });
+      N._g = g;
+    });
+
+    V._svg = svg;
+    return svg;
+  }
+
+  function setMarker(V, E, key) {
+    var url = 'url(#' + V.id + '-' + key + ')';
+    E._base.setAttribute('marker-end', url);
+    if (E.both) E._base.setAttribute('marker-start', url);
+  }
+
+  /* ================= 交互 ================= */
+  var VIEWS = { v1: V1, v2: V2 };
+  var cur = V1, selected = null;
+  var stage = document.getElementById('stage');
+  var panel = document.getElementById('panel');
+
+  function byId(V, id) {
+    for (var i = 0; i < V.nodes.length; i++) if (V.nodes[i].id === id) return V.nodes[i];
+    for (var j = 0; j < V.groups.length; j++) if (V.groups[j].id === id) return V.groups[j];
+    return null;
+  }
+  function childrenOf(V, gid) {
+    return V.nodes.filter(function (n) { return n.group === gid; }).map(function (n) { return n.id; });
+  }
+  function isGroupId(V, id) {
+    return V.groups.some(function (g) { return g.id === id; });
+  }
+
+  function select(id) {
+    var V = cur, svg = V._svg;
+    selected = id;
+    V.nodes.forEach(function (N) { N._g.classList.remove('sel', 'rel'); });
+    V.edges.forEach(function (E) { E._g.classList.remove('hl'); setMarker(V, E, E._mkey); });
+    if (!id) { svg.classList.remove('focus'); renderOverview(V); return; }
+
+    var item = byId(V, id);
+    if (!item) { select(null); return; }
+    var isGroup = isGroupId(V, id);
+
+    // 「自身」集合：节点 = 自己 + 所属分组；分组 = 自己 + 全部成员
+    var self = [id];
+    if (isGroup) self = self.concat(childrenOf(V, id));
+    else if (item.group) self.push(item.group);
+
+    var relEdges = V.edges.filter(function (E) { return self.indexOf(E.from) >= 0 || self.indexOf(E.to) >= 0; });
+    var related = {};
+    relEdges.forEach(function (E) {
+      [E.from, E.to].forEach(function (end) {
+        if (self.indexOf(end) >= 0) return;
+        related[end] = true;
+        // 对端是分组时，点亮它的成员
+        if (isGroupId(V, end)) childrenOf(V, end).forEach(function (c) { related[c] = true; });
+      });
+    });
+    self.forEach(function (s) { if (isGroup || s === id) related[s] = true; });
+
+    svg.classList.add('focus');
+    V.nodes.forEach(function (N) {
+      if (related[N.id]) N._g.classList.add('rel');
+      if (N.id === id || (isGroup && N.group === id)) N._g.classList.add('sel');
+    });
+    relEdges.forEach(function (E) { E._g.classList.add('hl'); setMarker(V, E, 'h'); });
+    renderDetail(V, item, relEdges, self, isGroup);
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
+  }
+  function nameOf(V, id) { var it = byId(V, id); return it ? it.title : id; }
+
+  function renderOverview(V) {
+    var o = V.overview;
+    panel.innerHTML =
+      '<div><div class="p-kicker">' + esc(o.kicker) + ' · 总览</div>' +
+      '<div class="p-title">' + esc(o.title) + '</div></div>' +
+      '<p class="p-lead">' + esc(o.lead) + '</p>' +
+      '<ul class="p-list">' + o.points.map(function (p) { return '<li>' + p + '</li>'; }).join('') + '</ul>' +
+      '<div class="p-rel"><h4>按顺序讲解</h4><div class="chips">' +
+      V.nodes.map(function (n, i) { return '<button data-go="' + n.id + '"><i>' + (i + 1) + '</i>' + esc(n.title) + '</button>'; }).join('') +
+      '</div></div>' +
+      '<div class="p-foot">点击图中任意节点或分组标题，高亮它的上下游连线；按 <code>←</code> <code>→</code> 逐个讲解，<code>Esc</code> 或点空白处回到总览。</div>';
+    bindChips();
+  }
+
+  function renderDetail(V, item, relEdges, self, isGroup) {
+    var P = PALETTE[item.c];
+    function inSelf(x) { return self.indexOf(x) >= 0; }
+    var inE = relEdges.filter(function (E) { return inSelf(E.to) && !inSelf(E.from); });
+    var outE = relEdges.filter(function (E) { return inSelf(E.from) && !inSelf(E.to); });
+    var inner = relEdges.filter(function (E) { return inSelf(E.from) && inSelf(E.to); });
+    function chip(E, dir) {
+      var other = dir === 'in' ? E.from : E.to;
+      var lbl = E.label ? '（' + E.label + '）' : '';
+      return '<button data-go="' + other + '"><i>' + (dir === 'in' ? '←' : '→') + '</i>' + esc(nameOf(V, other)) + esc(lbl) + '</button>';
+    }
+    function block(title, html) { return html ? '<div class="p-rel"><h4>' + title + '</h4><div class="chips">' + html + '</div></div>' : ''; }
+    var idx = V.nodes.indexOf(item);
+    panel.innerHTML =
+      '<div><div class="p-kicker">' + esc(V.overview.kicker) + (isGroup ? ' · 分组' : ' · 节点 ' + (idx + 1) + ' / ' + V.nodes.length) + '</div>' +
+      '<div class="p-title">' + esc(item.title) + '</div>' +
+      '<span class="p-tag" style="background:' + P.fill + ';color:' + P.ink + ';border:1px solid ' + P.stroke + '">' + esc(item.tag || '') + '</span></div>' +
+      '<ul class="p-list" style="--dot:' + P.stroke + '">' + (item.points || []).map(function (p) { return '<li>' + p + '</li>'; }).join('') + '</ul>' +
+      block('上游（流入）', inE.map(function (E) { return chip(E, 'in'); }).join('')) +
+      block('下游（流出）', outE.map(function (E) { return chip(E, 'out'); }).join('')) +
+      block('内部协作', inner.map(function (E) {
+        return '<button data-go="' + E.to + '"><i>⇄</i>' + esc(nameOf(V, E.from)) + ' · ' + esc(nameOf(V, E.to)) + (E.label ? esc('（' + E.label + '）') : '') + '</button>';
+      }).join('')) +
+      '<div class="p-foot"><code>←</code> <code>→</code> 上一个 / 下一个 · <code>Esc</code> 回到总览</div>';
+    bindChips();
+  }
+
+  function bindChips() {
+    Array.prototype.forEach.call(panel.querySelectorAll('[data-go]'), function (b) {
+      b.addEventListener('click', function () { select(b.getAttribute('data-go')); });
+    });
+  }
+
+  function show(vid) {
+    cur = VIEWS[vid];
+    Array.prototype.forEach.call(stage.querySelectorAll('svg'), function (s) { s.classList.toggle('on', s.id === vid); });
+    Array.prototype.forEach.call(document.querySelectorAll('.tabs button'), function (b) {
+      b.classList.toggle('on', b.getAttribute('data-view') === vid);
+    });
+    select(null);
+  }
+
+  function step(dir) {
+    var ids = cur.nodes.map(function (n) { return n.id; });
+    var i = ids.indexOf(selected);
+    if (i < 0) i = dir > 0 ? -1 : ids.length;
+    var n = i + dir;
+    if (n < 0 || n >= ids.length) { select(null); return; }
+    select(ids[n]);
+  }
+
+  stage.appendChild(render(V1));
+  stage.appendChild(render(V2));
+  Array.prototype.forEach.call(document.querySelectorAll('.tabs button'), function (b) {
+    b.addEventListener('click', function () { show(b.getAttribute('data-view')); });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var a = document.activeElement;
+    if (e.key === '1') show('v1');
+    else if (e.key === '2') show('v2');
+    else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); step(1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); step(-1); }
+    else if (e.key === 'Escape') select(null);
+    else if (e.key === 'Enter' && a && a.getAttribute && a.getAttribute('data-id')) select(a.getAttribute('data-id'));
+  });
+  show('v1');
+})();
+</script>
+</body>
+</html>

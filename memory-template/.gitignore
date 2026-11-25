@@ -1,0 +1,22 @@
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp
+
+# 明文凭据绝不入仓（只允许 secrets/*.enc.env 密文入仓；提交前还有 ops/hooks/pre-commit 检查）
+*.env
+.env
+.env.*
+!*.env.example
+!.env.example
+!secrets/*.enc.env
+*.key
+*.pem
+keys.txt
+secrets/*.plain
+secrets/*.tmp
+
+# 若偶尔用 Obsidian 打开本仓，屏蔽机器专属状态
+.obsidian/workspace.json
+.obsidian/cache
