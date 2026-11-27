@@ -26,7 +26,7 @@
 ```
 
 - 完整架构图和设计要点：[docs/architecture.md](docs/architecture.md)
-- 可交互讲解页：下载后用浏览器打开 [docs/live-demo.html](docs/live-demo.html)
+- 可交互讲解页：下载后用浏览器打开 [docs/live-demo.html](docs/live-demo.html)。它展示的是作者自己的完整多设备版本（Mac + Win + 云端中转、开发板拍照、三轨同步），本仓库是从中精简出的 Windows 单机版
 
 ## 目录
 

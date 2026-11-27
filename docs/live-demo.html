@@ -109,9 +109,9 @@
 </head>
 <body>
 <header>
-  <h1>多模型协作与工程记忆架构<small>单台 Windows · 现场讲解版</small></h1>
+  <h1>多模型协作与工程记忆架构<small>个人多设备（Mac + Win + 云端中转）· 现场讲解版</small></h1>
   <nav class="tabs" role="tablist">
-    <button data-view="v1" class="on" role="tab"><kbd>1</kbd>多模型协作架构</button>
+    <button data-view="v1" class="on" role="tab"><kbd>1</kbd>多模型与跨设备协作架构</button>
     <button data-view="v2" role="tab"><kbd>2</kbd>工程记忆架构</button>
   </nav>
 </header>
@@ -144,15 +144,15 @@
     violet:  { fill: '#f5f3ff', stroke: '#7c3aed', tint: '#faf8ff', ink: '#6d28d9' }
   };
 
-  /* ================= 视图 1：多模型协作 ================= */
+  /* ================= 视图 1：多模型与跨设备协作 ================= */
   var V1 = {
-    id: 'v1', name: '多模型协作架构', w: 1400, h: 860,
+    id: 'v1', name: '多模型与跨设备协作架构', w: 1400, h: 860,
     lanes: [
       { y: 18,  h: 104, c: 'slate',   name: '决策', sub: '人' },
       { y: 134, h: 172, c: 'indigo',  name: '主控层', sub: '双主控热切换' },
       { y: 318, h: 184, c: 'emerald', name: '调度层', sub: 'agent-kit' },
-      { y: 514, h: 166, c: 'rose',    name: '护栏 · 凭据', sub: '机械硬拦' },
-      { y: 692, h: 154, c: 'sky',     name: '代码 · 资料 · 记忆', sub: '各放各处' }
+      { y: 514, h: 166, c: 'rose',    name: '护栏 · 跨机', sub: '机械硬拦' },
+      { y: 692, h: 154, c: 'sky',     name: '三轨同步', sub: '代码与资料解耦' }
     ],
     groups: [
       { id: 'orch', x: 180, y: 150, w: 1080, h: 142, c: 'indigo', title: '主控层（Claude ⇄ Gemini）',
@@ -161,20 +161,20 @@
           '切换前落一份约 30～40 行的<b>交接单</b>：目标、已拍板决定、已验证 / 未验证、活跃 worker。',
           '主控负责<b>派活和验收</b>：所有 worker 的结论都要主控读 diff、亲自核实。'] },
       { id: 'kit', hidden: true, c: 'emerald', title: '调度层 · agent-kit', tag: '统一调度', points: [
-          '三个派活脚本和规则的源文件统一放在一个仓库，用 install.ps1 同步到各工具目录。',
+          '三个派活脚本的源文件统一放在一个规则仓库，Mac 与 Win 同源同步。',
           '每个派活任务单独后台运行，结束自动通知主控，不靠轮询。'] }
     ],
     nodes: [
       { id: 'human', x: 540, y: 34, w: 320, h: 74, c: 'slate', title: '👤 人 · 负责人',
-        sub: ['需求定义 · 方案拍板 · 推送终审'], tag: '决策者', points: [
-          '只做三件事：<b>提需求、拍板、终审</b>公开和推送。',
+        sub: ['需求定义 · 方案拍板 · 组织仓终审'], tag: '决策者', points: [
+          '只做三件事：<b>提需求、拍板、终审</b>组织仓推送。',
           '两份方案有分歧、都有道理时，原样摆出来由人拍板。',
           '删除、对外发消息、付款等不可逆操作必须本人确认。'] },
       { id: 'claude', group: 'orch', x: 220, y: 172, w: 380, h: 108, c: 'indigo', title: 'Claude Code · 主控',
         sub: ['架构拆解 · 定接口与验收标准', '前端视觉 · 合并验收 · 提交发布'], tag: '主控', points: [
           '听懂需求、拆解、<b>定接口和验收标准</b>。',
           '前端和视觉自己做；成块体力活派出去，<b>额度留给理解和验收</b>。',
-          '读回 diff 自己核实，不照抄 worker 结论；<b>提交推送只由主控做</b>。'] },
+          '读回 diff 自己核实，不照抄 worker 结论；<b>提交推送、烧录只由主控做</b>。'] },
       { id: 'gemini', group: 'orch', x: 840, y: 172, w: 380, h: 108, c: 'indigo', title: 'Antigravity / Gemini · 备用主控',
         sub: ['讨论稿 · 脑暴 · 文案交互', '额度紧张时读交接单接棒'], tag: '备用主控', points: [
           '日常负责讨论稿、脑暴、文案和交互打磨。',
@@ -187,39 +187,39 @@
           '合并时有分歧以代码和实测为准，它标「推测」的先核实。'] },
       { id: 'grok', group: 'kit', x: 560, y: 365, w: 280, h: 120, c: 'emerald', title: 'grok-ask · 只读反方',
         sub: ['专挑高危方案漏洞', '附推翻实验'], tag: '反方', points: [
-          '只在<b>三类高危方案</b>上出场：硬件通信或烧录、可能丢数据或泄露凭据、高风险的用户承诺。',
+          '只在<b>三类高危方案</b>上出场：碰硬件烧录、可能丢数据或泄露凭据、高风险的用户承诺。',
           '给出<b>最多 3 条漏洞 + 推翻实验</b>。',
           '实验要么跑，要么写明不跑的理由。'] },
       { id: 'codex', group: 'kit', x: 880, y: 365, w: 380, h: 120, c: 'emerald', title: 'codex-worker · 主力执行',
-        sub: ['--code 写代码 · --review 审高危 diff', '--net 多来源调研'], tag: '主力执行', points: [
+        sub: ['--code 写代码 · --review 审高危 diff', '--net 调研 · --desktop 桌面操控'], tag: '主力执行', points: [
           '<b>--code</b>：接口已定的成块后端、算法、数据处理。',
           '<b>--review</b>：合并前只审高危 diff，只挡说得出怎么出事的问题，最多两轮。',
-          '<b>--net</b> 多来源调研，只在临时目录里写。',
+          '<b>--net</b> 多来源调研；<b>--desktop</b> 操控桌面 App（含远程桌面）。',
           '装依赖、联网、提交推送仍由主控做。'] },
       { id: 'hooks', x: 180, y: 540, w: 440, h: 115, c: 'rose', title: '机械护栏（钩子）',
-        sub: ['bg-guard 拦裸后台 · secret-guard 拦泄密', 'pre-commit 拦明文密钥进记忆库'], tag: '硬拦截', points: [
+        sub: ['bg-guard 拦裸后台 · secret-guard 拦泄密', 'pre-push 拦未审核推组织仓与私货'], tag: '硬拦截', points: [
           '<b>能写成检查的，绝不只写进提示词</b>。',
           'bg-guard：拦 nohup / 结尾 & 这类丢了就没人管的后台命令。',
-          'secret-guard：拦直接解密、读私钥、全量打印环境变量；pre-commit：拦明文密钥提交进记忆库。'] },
-      { id: 'cross', x: 760, y: 540, w: 500, h: 115, c: 'rose', title: '凭据注入 · secret',
-        sub: ['sops + age 加密存放', 'secret run 按名注入 · 输出自动 [REDACTED]'], tag: '凭据', points: [
-          'Key 只录一次：<b>只能本人</b>在自己终端用 secret set 录入，自动加密提交。',
-          'Agent 用 Key 但<b>看不到 Key</b>，缺 Key 时请人去补。',
+          'secret-guard：拦明文读取密钥；pre-push：拦未经审核推到组织仓、拦私人文件混入。'] },
+      { id: 'cross', x: 760, y: 540, w: 500, h: 115, c: 'rose', title: '跨机与物理验收',
+        sub: ['win-run 远程执行 Win 命令（长输出截断）', 'board-snap 拍开发板 · secret run 注入凭据'], tag: '跨机工具', points: [
+          '<b>产品测试只在 Win 上算数</b>：win-run 从 Mac 远程执行，长输出自动截断。',
+          'board-snap 给开发板拍照，默认压到长边 1024px，<b>防大图撑爆上下文</b>。',
           'secret run 只注入点名的凭据，输出里的原文自动替换为 [REDACTED]。'] },
       { id: 'git', x: 180, y: 720, w: 340, h: 110, c: 'sky', title: '代码轨 · Git',
-        sub: ['日常开发 · 并行会话各开 worktree', '提交推送只由主控做'], tag: '代码', points: [
-          '代码<b>只经 Git</b> 管理。',
-          '同一仓库多个会话写代码时各开 worktree，主 checkout 只做合并。',
-          '公开发布前由人确认。'] },
-      { id: 'light', x: 560, y: 720, w: 340, h: 110, c: 'sky', title: '资料目录',
-        sub: ['讨论稿 · 截图 · 交付件', '不放进代码仓库根目录'], tag: '资料', points: [
-          '讨论稿、截图、交付件统一放一个资料目录。',
-          '<b>不放凭据</b>；一次性临时文件放 %TEMP%。',
-          '仓库根目录不放非代码产物。'] },
-      { id: 'heavy', x: 940, y: 720, w: 320, h: 110, c: 'sky', title: '记忆库 · agent-memory',
-        sub: ['Git 私有仓 · 见视图 2', '夜间整理唯一写入'], tag: '记忆', points: [
-          '工程记忆单独放一个<b>私有</b> Git 仓库。',
-          '日常只读主库、只写 inbox，夜间任务统一整理。'] }
+        sub: ['个人仓日常开发', '组织仓审后快进推送'], tag: '代码', points: [
+          '代码<b>只经 Git</b> 在两台机器间同步。',
+          '同一时间只有一台机器改同一个仓库，另一台只跑命令。',
+          '组织仓只快进推送，推前过审核。'] },
+      { id: 'light', x: 560, y: 720, w: 340, h: 110, c: 'sky', title: '资料轨 · sync-work',
+        sub: ['Mac ↔ Win ↔ 云端中转', '文档 · 讨论稿 · 交付件'], tag: '轻资料', points: [
+          'Syncthing 三端同步：文档、讨论稿、截图、交付件。',
+          '配忽略规则和版本回收站；<b>严禁放 .git 和凭据</b>。',
+          '仓库根目录不放非代码产物，统一落这里。'] },
+      { id: 'heavy', x: 940, y: 720, w: 320, h: 110, c: 'sky', title: '大文件轨 · sync-work-heavy',
+        sub: ['仅 Mac ↔ Win 内网直连', '录音 · 固件包'], tag: '大文件', points: [
+          '只在 Mac 与 Win 之间内网直连，<b>不上云端</b>。',
+          '放录音、固件包等大文件，不挤占轻资料轨。'] }
     ],
     edges: [
       { from: 'human', to: 'orch', kind: 'bold', pts: [[700,108],[700,150]], label: '需求 / 拍板', lx: 712, ly: 134, anchor: 'start' },
@@ -231,17 +231,18 @@
       { from: 'orch', to: 'codex', pts: [[990,292],[990,365]], label: '派活', lx: 998, ly: 334, anchor: 'start' },
       { from: 'codex', to: 'orch', kind: 'dashed', pts: [[1130,365],[1130,292]], label: '改动 + 实测回执', lx: 1138, ly: 334, anchor: 'start' },
       { from: 'orch', to: 'hooks', kind: 'bold', pts: [[200,292],[200,540]], label: '全程经钩子', lx: 188, ly: 420, rotate: true },
-      { from: 'codex', to: 'cross', pts: [[1070,485],[1070,540]], label: '用 Key 时', lx: 1078, ly: 517, anchor: 'start' },
-      { from: 'hooks', to: 'git', kind: 'bold', pts: [[300,655],[300,720]], label: '提交 / 推送', lx: 308, ly: 692, anchor: 'start' }
+      { from: 'codex', to: 'cross', pts: [[1070,485],[1070,540]], label: 'win-run · board-snap', lx: 1078, ly: 517, anchor: 'start' },
+      { from: 'hooks', to: 'git', kind: 'bold', pts: [[300,655],[300,720]], label: 'pre-push 审核', lx: 308, ly: 692, anchor: 'start' },
+      { from: 'cross', to: 'light', kind: 'dashed', pts: [[840,655],[840,720]], label: '截图 / 日志落盘', lx: 848, ly: 692, anchor: 'start' }
     ],
     overview: {
-      kicker: '视图 1 / 2', title: '多模型协作架构',
+      kicker: '视图 1 / 2', title: '多模型与跨设备协作架构',
       lead: '把模型当成偏科的团队成员分工，用脚手架和机械护栏控质量、控安全。',
       points: [
         '<b>按模型性格分工</b>：Claude 拆解、审美与验收；Gemini 当独立军师和文案顾问；Codex 承接成块执行；Grok 只在高危方案上当反方。',
         '<b>双主控热切换</b>：两家额度独立，靠一份短交接单接棒，不丢上下文。',
-        '<b>机械护栏替代口头提醒</b>：防野后台、防泄密、防明文密钥入库。',
-        '<b>代码、资料、记忆分开放</b>：代码只走 Git，资料放资料目录，记忆进单独的私有仓。'
+        '<b>机械护栏替代口头提醒</b>：防野后台、防泄密、防未审核推送、防大日志大原图撑爆上下文。',
+        '<b>代码与资料解耦</b>：代码只走 Git，非代码资料走两层 Syncthing。'
       ]
     }
   };
@@ -254,9 +255,9 @@
       { id: 'g-switch', x: 30, y: 150, w: 250, h: 200, c: 'amber', title: '① 按项目开关', label: '① 按项目开关', lpos: 'top',
         tag: '默认关闭', points: ['未声明记忆模式的项目<b>一律不读</b>，避免无关背景干扰。'] },
       { id: 'g-daily', x: 330, y: 110, w: 300, h: 560, c: 'indigo', title: '② 日常会话', label: '② 日常会话 · 多 Agent', lpos: 'top',
-        tag: '多 Agent', points: ['日常会话<b>只读主库、只写暂存</b>，从结构上消灭并发写冲突。'] },
+        tag: 'Mac / Win 多 Agent', points: ['日常会话<b>只读主库、只写暂存</b>，从结构上消灭并发写冲突。'] },
       { id: 'g-store', x: 690, y: 80, w: 680, h: 250, c: 'emerald', title: '⑤ agent-memory 主库', label: '⑤ 主库 agent-memory（日常只读）', lpos: 'top',
-        tag: '只读', points: ['主库是 Git 私有仓；日常 Agent 只读，<b>唯一写入者是夜间任务</b>。'] },
+        tag: '只读', points: ['主库经 Git 多端同步；日常 Agent 只读，<b>唯一写入者是夜间任务</b>。'] },
       { id: 'g-stage', x: 690, y: 410, w: 330, h: 300, c: 'orange', title: '③ 暂存层', label: '③ 暂存层（日常可写）', lpos: 'top',
         tag: '可写缓冲区', points: ['所有日常写入都先落到暂存层，等夜间统一消化。'] },
       { id: 'g-night', x: 1070, y: 410, w: 300, h: 300, c: 'violet', title: '④ 夜间整理', label: '④ 夜间整理（唯一写入者）', lpos: 'bottom',
@@ -266,7 +267,7 @@
     ],
     nodes: [
       { id: 'cfg', group: 'g-switch', x: 50, y: 192, w: 210, h: 130, c: 'amber', title: '项目根本机文件',
-        sub: ['不入库 · 本机声明', 'Memory: off（默认）', 'Memory: facts'], tag: '开关', points: [
+        sub: ['不入库 · 各机各自声明', 'Memory: off（默认）', 'Memory: facts'], tag: '开关', points: [
           '默认 <code>Memory: off</code>：<b>不读也不写</b>记忆库。',
           '声明 <code>Memory: facts</code> 才在开工时读取。',
           '开关文件<b>不入库</b>，团队仓库不受影响；口头「关记忆」可单次覆盖。'] },
@@ -281,16 +282,16 @@
           '<b>绝不直接改</b>总索引、项目状态和 wiki。',
           '派出去的 worker 不写记忆，只在回执里附候选，由主控决定。'] },
       { id: 'inbox', group: 'g-stage', x: 710, y: 455, w: 290, h: 115, c: 'orange', title: 'inbox/',
-        sub: ['日期.md · 只追加', '结论 · 踩坑 · 纠错候选'], tag: '暂存', points: [
-          '按<b>日期</b>分文件，各会话只追加 → 合并不冲突。',
+        sub: ['日期-设备.md · 各写各的文件', '结论 · 踩坑 · 纠错候选'], tag: '暂存', points: [
+          '按<b>日期 + 设备</b>分文件，每端只写自己的文件 → 多端同步不冲突。',
           '只追加，不改写。'] },
       { id: 'handoff', group: 'g-stage', x: 710, y: 590, w: 290, h: 100, c: 'orange', title: 'HANDOFF.md',
-        sub: ['会话间任务交接'], tag: '交接', points: [
-          '每个项目一份，记录进行中的任务。',
-          '新开会话先读它，接上上一次的进度。'] },
+        sub: ['跨设备任务交接'], tag: '交接', points: [
+          '每个项目一份，记录跨设备进行中的任务。',
+          '换一台机器开工先读它，接上上一端的进度。'] },
       { id: 'night', group: 'g-night', x: 1090, y: 450, w: 260, h: 210, c: 'violet', title: '夜间蒸馏任务',
-        sub: ['采集 Codex / Claude / Antigravity 会话', '+ inbox 暂存', '去重账本防重复合并', '核对后写入主库'], tag: '唯一写入者', points: [
-          '每晚由 Windows 计划任务触发，采集各工具的会话记录和 inbox。',
+        sub: ['采集各端会话 + 工作日志', '+ inbox 暂存', '去重账本防重复合并', '核对后写入主库'], tag: '唯一写入者', points: [
+          '每晚定时采集各端会话、工作日志和 inbox。',
           '用<b>去重账本</b>记录已消化的内容，防止同一条反复合并。',
           '<b>每页单一写入者</b>：主库只有它在写，彻底消灭并发冲突和垃圾堆积。'] },
       { id: 'index', group: 'g-store', x: 710, y: 125, w: 200, h: 175, c: 'emerald', title: 'MEMORY.md',
@@ -330,7 +331,7 @@
       lead: '读写分离的轻量 Git 仓库做跨会话记忆：日常只读主库、只写暂存，夜间统一蒸馏。',
       points: [
         '<b>默认关闭、按需加载</b>：项目声明后才读；先读 ≤80 行总索引，再按需下钻。',
-        '<b>每页单一写入者</b>：日常只追加 inbox，主库只由夜间任务写，消灭并发写冲突。',
+        '<b>每页单一写入者</b>：日常只追加 inbox，主库只由夜间任务写，消灭多端并发冲突。',
         '<b>证据与溯源</b>：wiki 每条标「已核 / 未核」和出处，旧推测不会变成既定事实。',
         '<b>严格边界</b>：凭据加密隔离，永不进记忆正文；禁读目录和原始笔记库不自动扫描。'
       ]
