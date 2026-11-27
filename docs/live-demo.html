@@ -109,7 +109,7 @@
 </head>
 <body>
 <header>
-  <h1>多模型协作与工程记忆架构<small>个人多设备（Mac + Win + 云端中转）· 现场讲解版</small></h1>
+  <h1>多模型协作与工程记忆架构<small>个人多设备（Mac + Win + 云端 + iPhone）· 现场讲解版</small></h1>
   <nav class="tabs" role="tablist">
     <button data-view="v1" class="on" role="tab"><kbd>1</kbd>多模型与跨设备协作架构</button>
     <button data-view="v2" role="tab"><kbd>2</kbd>工程记忆架构</button>
@@ -146,16 +146,17 @@
 
   /* ================= 视图 1：多模型与跨设备协作 ================= */
   var V1 = {
-    id: 'v1', name: '多模型与跨设备协作架构', w: 1400, h: 860,
+    id: 'v1', name: '多模型与跨设备协作架构', w: 1400, h: 986,
     lanes: [
       { y: 18,  h: 104, c: 'slate',   name: '决策', sub: '人' },
-      { y: 134, h: 172, c: 'indigo',  name: '主控层', sub: '双主控热切换' },
-      { y: 318, h: 184, c: 'emerald', name: '调度层', sub: 'agent-kit' },
-      { y: 514, h: 166, c: 'rose',    name: '护栏 · 跨机', sub: '机械硬拦' },
-      { y: 692, h: 154, c: 'sky',     name: '三轨同步', sub: '代码与资料解耦' }
+      { y: 134, h: 172, c: 'indigo',  name: '主控层', sub: 'Mac · 双主控热切换' },
+      { y: 318, h: 166, c: 'emerald', name: '调度层', sub: 'agent-kit' },
+      { y: 496, h: 164, c: 'rose',    name: '护栏 · 跨机', sub: '检查与验收' },
+      { y: 675, h: 133, c: 'violet',  name: '设备', sub: '本地与云端' },
+      { y: 820, h: 152, c: 'sky',     name: '三轨同步', sub: '代码与资料解耦' }
     ],
     groups: [
-      { id: 'orch', x: 180, y: 150, w: 1080, h: 142, c: 'indigo', title: '主控层（Claude ⇄ Gemini）',
+      { id: 'orch', x: 180, y: 150, w: 1160, h: 142, c: 'indigo', title: 'Mac 主控层（Claude ⇄ Gemini）',
         tag: '双主控 · 可热切换', points: [
           '两家额度池<b>相互独立</b>，一家紧张就换另一家当主控。',
           '切换前落一份约 30～40 行的<b>交接单</b>：目标、已拍板决定、已验证 / 未验证、活跃 worker。',
@@ -165,7 +166,7 @@
           '每个派活任务单独后台运行，结束自动通知主控，不靠轮询。'] }
     ],
     nodes: [
-      { id: 'human', x: 540, y: 34, w: 320, h: 74, c: 'slate', title: '👤 人 · 负责人',
+      { id: 'human', x: 600, y: 34, w: 320, h: 74, c: 'slate', title: '👤 人 · 负责人',
         sub: ['需求定义 · 方案拍板 · 组织仓终审'], tag: '决策者', points: [
           '只做三件事：<b>提需求、拍板、终审</b>组织仓推送。',
           '两份方案有分歧、都有道理时，原样摆出来由人拍板。',
@@ -175,74 +176,105 @@
           '听懂需求、拆解、<b>定接口和验收标准</b>。',
           '前端和视觉自己做；成块体力活派出去，<b>额度留给理解和验收</b>。',
           '读回 diff 自己核实，不照抄 worker 结论；<b>提交推送、烧录只由主控做</b>。'] },
-      { id: 'gemini', group: 'orch', x: 840, y: 172, w: 380, h: 108, c: 'indigo', title: 'Antigravity / Gemini · 备用主控',
+      { id: 'gemini', group: 'orch', x: 900, y: 172, w: 400, h: 108, c: 'indigo', title: 'Antigravity / Gemini · 备用主控',
         sub: ['讨论稿 · 脑暴 · 文案交互', '额度紧张时读交接单接棒'], tag: '备用主控', points: [
           '日常负责讨论稿、脑暴、文案和交互打磨。',
           '接棒时先读交接单，<b>核对时间和最新提交号</b>再继续，防止过期交接误导。',
           '接手完成后覆盖或清空交接单。'] },
-      { id: 'agy', group: 'kit', x: 240, y: 365, w: 280, h: 120, c: 'emerald', title: 'agy-ask · 只读顾问',
+      { id: 'agy', group: 'kit', x: 230, y: 350, w: 215, h: 120, c: 'emerald', title: 'agy-ask · 只读顾问',
         sub: ['Gemini 独立出一份方案', '--copy 改文案与交互'], tag: '独立军师', points: [
           '大方案（改设备通信、改数据存储、超一天的结构改动）<b>两家各出一份</b>。',
           '只给它用户原话和必要背景，<b>不给主控草稿</b>，避免被带偏。',
           '合并时有分歧以代码和实测为准，它标「推测」的先核实。'] },
-      { id: 'grok', group: 'kit', x: 560, y: 365, w: 280, h: 120, c: 'emerald', title: 'grok-ask · 只读反方',
+      { id: 'grok', group: 'kit', x: 475, y: 350, w: 215, h: 120, c: 'emerald', title: 'grok-ask · 只读反方',
         sub: ['专挑高危方案漏洞', '附推翻实验'], tag: '反方', points: [
           '只在<b>三类高危方案</b>上出场：碰硬件烧录、可能丢数据或泄露凭据、高风险的用户承诺。',
           '给出<b>最多 3 条漏洞 + 推翻实验</b>。',
           '实验要么跑，要么写明不跑的理由。'] },
-      { id: 'codex', group: 'kit', x: 880, y: 365, w: 380, h: 120, c: 'emerald', title: 'codex-worker · 主力执行',
-        sub: ['--code 写代码 · --review 审高危 diff', '--net 调研 · --desktop 桌面操控'], tag: '主力执行', points: [
-          '<b>--code</b>：接口已定的成块后端、算法、数据处理。',
-          '<b>--review</b>：合并前只审高危 diff，只挡说得出怎么出事的问题，最多两轮。',
-          '<b>--net</b> 多来源调研；<b>--desktop</b> 操控桌面 App（含远程桌面）。',
-          '装依赖、联网、提交推送仍由主控做。'] },
-      { id: 'hooks', x: 180, y: 540, w: 440, h: 115, c: 'rose', title: '机械护栏（钩子）',
+      { id: 'codex', group: 'kit', x: 720, y: 350, w: 355, h: 120, c: 'emerald', title: 'codex-worker · 五档执行',
+        sub: ['--code 写代码 · --review 审高风险改动', '--net 调研 · --desktop 操作 Mac', '--win-gui 操作 Win 桌面'], tag: '主力执行', points: [
+          '<b>--code</b> 实现接口已定的后端、算法和数据处理任务。',
+          '<b>--review</b> 在合并前审查高风险改动，最多两轮。',
+          '<b>--net</b> 做多来源联网调研。',
+          '<b>--desktop</b> 操作 Mac 桌面。',
+          '<b>--win-gui</b> 通过 SSH 隧道调用常驻 Win 交互桌面的 win-gui MCP（供模型调用的桌面工具）。排队锁让 Win 桌面一次只执行一个任务，Mac 前台可继续使用。',
+          '两种桌面档默认使用<b>专门的电脑操作模型</b>。依赖安装、提交推送与发布由主控把关。'] },
+      { id: 'skills', x: 1105, y: 350, w: 235, h: 120, c: 'emerald', title: '按需 Skills',
+        sub: ['全局规则精简约 77%', '派活交接 · Win 实机验收', 'Chrome 与客服 · 记忆同步'], tag: '按任务加载的操作指南', points: [
+          '全局规则精简约 <b>77%</b>，具体操作拆成四份按需加载的指南。',
+          '<b>multi-agent-dispatch</b>：选择派活档位、组织独立审查和主控交接。',
+          '<b>win-verification</b>：Win 实机验收，用 win-run 跑命令和看串口、用 win-gui 操作桌面、用 board-snap 拍开发板。',
+          '<b>mac-browser-and-support</b>：通过 Codex 调试通道复用 Chrome 登录态，办理和跟进官方客服工单。',
+          '<b>memory-and-sync-setup</b>：设置项目记忆开关，决定跨机资料放在哪条同步轨。'] },
+      { id: 'hooks', x: 180, y: 517, w: 440, h: 126, c: 'rose', title: '机械护栏（钩子）',
         sub: ['bg-guard 拦裸后台 · secret-guard 拦泄密', 'pre-push 拦未审核推组织仓与私货'], tag: '硬拦截', points: [
           '<b>能写成检查的，绝不只写进提示词</b>。',
           'bg-guard：拦 nohup / 结尾 & 这类丢了就没人管的后台命令。',
           'secret-guard：拦明文读取密钥；pre-push：拦未经审核推到组织仓、拦私人文件混入。'] },
-      { id: 'cross', x: 760, y: 540, w: 500, h: 115, c: 'rose', title: '跨机与物理验收',
-        sub: ['win-run 远程执行 Win 命令（长输出截断）', 'board-snap 拍开发板 · secret run 注入凭据'], tag: '跨机工具', points: [
-          '<b>产品测试只在 Win 上算数</b>：win-run 从 Mac 远程执行，长输出自动截断。',
-          'board-snap 给开发板拍照，默认压到长边 1024px，<b>防大图撑爆上下文</b>。',
+      { id: 'cross', x: 680, y: 517, w: 660, h: 126, c: 'rose', title: '跨机与物理验收',
+        sub: ['win-run 跑 Win 命令、看串口 · win-gui 操作 Win 桌面', 'Chrome 登录态复用 · Codex 调试通道', 'board-snap 拍开发板 · iPhone 连续互通相机'], tag: '跨机工具', points: [
+          '<b>Win 实机产品测试</b>：win-run 从 Mac 远程跑命令、看串口，自动截断长输出。win-gui 在 Win 交互桌面操作应用。',
+          '<b>Chrome 登录态复用</b>：Codex 通过 Mac 上的 Chrome 调试通道操作已经登录的网页。',
+          '<b>board-snap</b> 用连续互通相机把 iPhone 变成 Mac 的开发板相机，默认将照片缩到长边 1024px。',
           'secret run 只注入点名的凭据，输出里的原文自动替换为 [REDACTED]。'] },
-      { id: 'git', x: 180, y: 720, w: 340, h: 110, c: 'sky', title: '代码轨 · Git',
+      { id: 'mac', x: 180, y: 695, w: 260, h: 98, c: 'violet', title: 'Mac · 主控',
+        sub: ['运行双主控与调度工具', '浏览器调试 · 桌面操作'], tag: '调度与验收入口', points: [
+          'Claude Code 和 Antigravity / Gemini 在 Mac 上接棒。主控从这里派活、看回执和验收证据。',
+          'Codex 在这里复用 Chrome 登录态，也可操作 Mac 桌面。'] },
+      { id: 'win', x: 480, y: 695, w: 260, h: 98, c: 'violet', title: 'Win · 产品测试与桌面',
+        sub: ['命令 · 串口 · 交互桌面', '计划任务运行资料备份'], tag: '产品验收实机', points: [
+          '产品实测、串口读取和桌面操作都在 Win 上执行。',
+          '桌面服务常驻交互会话，并通过排队锁避免并发操作。',
+          'Win 计划任务每晚运行资料轨备份。'] },
+      { id: 'relay', x: 780, y: 695, w: 260, h: 98, c: 'violet', title: '云端中转服务器',
+        sub: ['Syncthing 第三端', '参与轻资料同步'], tag: '三端同步', points: [
+          'Syncthing 是设备间的文件同步工具。云端中转服务器与 Mac、Win 一起参与轻资料同步。'] },
+      { id: 'iphone', x: 1080, y: 695, w: 260, h: 98, c: 'violet', title: 'iPhone · 开发板相机',
+        sub: ['连续互通相机接入 Mac', '为 board-snap 提供画面'], tag: '硬件验收取证', points: [
+          'iPhone 通过连续互通相机向 Mac 提供画面，board-snap 从这里采集开发板照片。'] },
+      { id: 'git', x: 180, y: 837, w: 340, h: 120, c: 'sky', title: '代码轨 · Git',
         sub: ['个人仓日常开发', '组织仓审后快进推送'], tag: '代码', points: [
           '代码<b>只经 Git</b> 在两台机器间同步。',
           '同一时间只有一台机器改同一个仓库，另一台只跑命令。',
           '组织仓只快进推送，推前过审核。'] },
-      { id: 'light', x: 560, y: 720, w: 340, h: 110, c: 'sky', title: '资料轨 · sync-work',
-        sub: ['Mac ↔ Win ↔ 云端中转', '文档 · 讨论稿 · 交付件'], tag: '轻资料', points: [
+      { id: 'light', x: 560, y: 837, w: 365, h: 120, c: 'sky', title: '资料轨 · sync-work',
+        sub: ['Syncthing · Mac / Win / 云端', '文档 · 截图 · 交付件', '每晚明文备份至 Google Drive'], tag: '轻资料与云备份', points: [
           'Syncthing 三端同步：文档、讨论稿、截图、交付件。',
           '配忽略规则和版本回收站；<b>严禁放 .git 和凭据</b>。',
-          '仓库根目录不放非代码产物，统一落这里。'] },
-      { id: 'heavy', x: 940, y: 720, w: 320, h: 110, c: 'sky', title: '大文件轨 · sync-work-heavy',
+          '仓库根目录不放非代码产物，统一落这里。',
+          'Win 计划任务每晚用 <b>rclone</b>（云存储同步工具）将资料<b>明文备份到 Google Drive</b>。备份前剔除凭据、私钥等红线文件，并删除备份历史版本里命中红线的文件。'] },
+      { id: 'heavy', x: 965, y: 837, w: 375, h: 120, c: 'sky', title: '大文件轨 · sync-work-heavy',
         sub: ['仅 Mac ↔ Win 内网直连', '录音 · 固件包'], tag: '大文件', points: [
           '只在 Mac 与 Win 之间内网直连，<b>不上云端</b>。',
           '放录音、固件包等大文件，不挤占轻资料轨。'] }
     ],
     edges: [
-      { from: 'human', to: 'orch', kind: 'bold', pts: [[700,108],[700,150]], label: '需求 / 拍板', lx: 712, ly: 134, anchor: 'start' },
-      { from: 'claude', to: 'gemini', kind: 'bold', both: true, pts: [[600,226],[840,226]], label: '写交接单 / 接棒', lx: 720, ly: 214 },
-      { from: 'orch', to: 'agy', pts: [[330,292],[330,365]], label: '派活', lx: 338, ly: 334, anchor: 'start' },
-      { from: 'agy', to: 'orch', kind: 'dashed', pts: [[440,365],[440,292]], label: '方案 / 文案', lx: 448, ly: 334, anchor: 'start' },
-      { from: 'orch', to: 'grok', pts: [[650,292],[650,365]], label: '派活', lx: 658, ly: 334, anchor: 'start' },
-      { from: 'grok', to: 'orch', kind: 'dashed', pts: [[750,365],[750,292]], label: '≤3 漏洞 + 实验', lx: 758, ly: 334, anchor: 'start' },
-      { from: 'orch', to: 'codex', pts: [[990,292],[990,365]], label: '派活', lx: 998, ly: 334, anchor: 'start' },
-      { from: 'codex', to: 'orch', kind: 'dashed', pts: [[1130,365],[1130,292]], label: '改动 + 实测回执', lx: 1138, ly: 334, anchor: 'start' },
-      { from: 'orch', to: 'hooks', kind: 'bold', pts: [[200,292],[200,540]], label: '全程经钩子', lx: 188, ly: 420, rotate: true },
-      { from: 'codex', to: 'cross', pts: [[1070,485],[1070,540]], label: 'win-run · board-snap', lx: 1078, ly: 517, anchor: 'start' },
-      { from: 'hooks', to: 'git', kind: 'bold', pts: [[300,655],[300,720]], label: 'pre-push 审核', lx: 308, ly: 692, anchor: 'start' },
-      { from: 'cross', to: 'light', kind: 'dashed', pts: [[840,655],[840,720]], label: '截图 / 日志落盘', lx: 848, ly: 692, anchor: 'start' }
+      { from: 'human', to: 'orch', kind: 'bold', pts: [[760,108],[760,150]], label: '需求 / 拍板', lx: 772, ly: 134, anchor: 'start' },
+      { from: 'claude', to: 'gemini', kind: 'bold', both: true, pts: [[600,226],[900,226]], label: '写交接单 / 接棒', lx: 750, ly: 214 },
+      { from: 'orch', to: 'agy', pts: [[280,292],[280,350]], label: '派活', lx: 288, ly: 329, anchor: 'start' },
+      { from: 'agy', to: 'orch', kind: 'dashed', pts: [[375,350],[375,292]], label: '方案 / 文案', lx: 383, ly: 329, anchor: 'start' },
+      { from: 'orch', to: 'grok', pts: [[525,292],[525,350]], label: '派活', lx: 533, ly: 329, anchor: 'start' },
+      { from: 'grok', to: 'orch', kind: 'dashed', pts: [[620,350],[620,292]], label: '≤3 漏洞 + 实验', lx: 628, ly: 329, anchor: 'start' },
+      { from: 'orch', to: 'codex', pts: [[790,292],[790,350]], label: '派活', lx: 798, ly: 329, anchor: 'start' },
+      { from: 'codex', to: 'orch', kind: 'dashed', pts: [[930,350],[930,292]], label: '改动 + 实测回执', lx: 938, ly: 329, anchor: 'start' },
+      { from: 'skills', to: 'orch', kind: 'dashed', pts: [[1210,350],[1210,292]], label: '按需加载', lx: 1218, ly: 329, anchor: 'start' },
+      { from: 'orch', to: 'hooks', kind: 'bold', pts: [[200,292],[200,517]], label: '全程经钩子', lx: 188, ly: 420, rotate: true },
+      { from: 'codex', to: 'cross', pts: [[895,470],[895,517]], label: '跨机操作与取证', lx: 903, ly: 501, anchor: 'start' },
+      { from: 'hooks', to: 'git', kind: 'bold', pts: [[180,580],[158,580],[158,893],[180,893]], label: 'pre-push 审核', lx: 146, ly: 748, rotate: true },
+      { from: 'cross', to: 'mac', pts: [[705,643],[705,668],[310,668],[310,695]], label: 'Chrome 调试', lx: 505, ly: 659 },
+      { from: 'cross', to: 'win', pts: [[725,643],[725,695]], label: '产品测试', lx: 733, ly: 674, anchor: 'start' },
+      { from: 'iphone', to: 'cross', pts: [[1205,695],[1205,643]], label: '相机画面', lx: 1213, ly: 674, anchor: 'start' },
+      { from: 'win', to: 'light', pts: [[610,793],[610,837]], label: '截图 / 日志', lx: 618, ly: 818, anchor: 'start' },
+      { from: 'relay', to: 'light', both: true, pts: [[850,793],[850,837]], label: '三端同步', lx: 858, ly: 818, anchor: 'start' }
     ],
     overview: {
       kicker: '视图 1 / 2', title: '多模型与跨设备协作架构',
-      lead: '把模型当成偏科的团队成员分工，用脚手架和机械护栏控质量、控安全。',
+      lead: 'Mac 上的双主控调度多模型协作，由 Win 实测产品、iPhone 拍摄开发板、云端服务器中转资料。',
       points: [
-        '<b>按模型性格分工</b>：Claude 拆解、审美与验收；Gemini 当独立军师和文案顾问；Codex 承接成块执行；Grok 只在高危方案上当反方。',
-        '<b>双主控热切换</b>：两家额度独立，靠一份短交接单接棒，不丢上下文。',
-        '<b>机械护栏替代口头提醒</b>：防野后台、防泄密、防未审核推送、防大日志大原图撑爆上下文。',
-        '<b>代码与资料解耦</b>：代码只走 Git，非代码资料走两层 Syncthing。'
+        '<b>双主控与五档执行</b>：Claude 与 Gemini 靠短交接单接棒，Codex 承接写代码、审查、调研和两端桌面操作，Grok 复核高风险方案。',
+        '<b>规则按需加载</b>：全局规则精简约 77%，四份 Skills 涵盖派活交接、Win 验收、Chrome 与工单、记忆与同步。',
+        '<b>跨机验收</b>：通过 win-run、win-gui 和 iPhone 相机取证，在 Mac 复用 Chrome 登录态。',
+        '<b>三条同步轨</b>：代码走 Git，轻资料三端同步并每晚备份 Google Drive，大文件两机内网直连。'
       ]
     }
   };
